@@ -1,0 +1,33 @@
+version: "3.9"
+
+services:
+  arena-env:
+    build:
+      context: ..           # build from Finale-meta/ root
+      dockerfile: server/Dockerfile
+    image: adversarial-api-arena:latest
+    container_name: arena-env
+    ports:
+      - "8000:8000"
+    environment:
+      - MAX_STEPS=20
+      - EPISODE_TIMEOUT=300
+      - SUSPICION_THRESHOLD=0.7
+      - LOG_DIR=outputs/logs
+      - WORKERS=1
+      - PORT=8000
+    volumes:
+      # Persist episode logs across container restarts
+      - arena-logs:/app/outputs/logs
+      - arena-evals:/app/outputs/evals
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+volumes:
+  arena-logs:
+  arena-evals:
